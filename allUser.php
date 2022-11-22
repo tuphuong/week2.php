@@ -120,43 +120,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         </body>
     </html>';
 } else {
+    require_once('helper/validation.php');
     // get params
-    $ID = $_POST["ID"];
-    if (array_key_exists("role_number", $_POST)) {
-        $role = $_POST["role_number"];
+    if (array_key_exists("ID", $_POST)) {
+        $ID = $_POST["ID"];
     }
     if (array_key_exists("username", $_POST)) {
         $username = $_POST["username"];
     }
     if (array_key_exists("email", $_POST)) {
         $email = $_POST["email"];
-    }
-    if (array_key_exists("PhoneNumber", $_POST)) {
-        $PhoneNumber = $_POST["PhoneNumber"];
-    }
-    if (array_key_exists("Address", $_POST)) {
-        $Address = $_POST["Address"];
-    }
-    if (array_key_exists("action", $_POST)) {
-        $action = $_POST["action"];
-    }
-
-
-    // process
-    if ($action == "save") {
-        $sql_cmd = "UPDATE user SET username='$username', email='$email', PhoneNumber='$PhoneNumber', Address='$Address', role=$role WHERE ID=$ID";
-        $db->execute($sql_cmd);
-        $resp = array("mesg" => "Chỉnh sửa thành công");
-
-    } else if ($action == "delete") {
-        $db->execute("DELETE FROM user WHERE ID=$ID");
-        $resp = array("mesg" => "Xóa thành công");
-    } else if ($action == "add") {
-        $db->execute("INSERT INTO user (username, email, PhoneNumber, Address, role) VALUES ('$username', '$email', '$PhoneNumber', '$Address', '$role')");
-        $resp = array("mesg" => "Thêm thành công");
+        $emailErr = checkEmail($email);
+        if ($emailErr == "") {
+            if (array_key_exists("PhoneNumber", $_POST)) {
+                $PhoneNumber = $_POST["PhoneNumber"];
+                $PhoneNumberErr = checkPhoneNumber($PhoneNumber);
+                if ($PhoneNumberErr == "") {
+                    if (array_key_exists("Address", $_POST)) {
+                        $Address = $_POST["Address"];
+                        if (array_key_exists("role_number", $_POST)) {
+                            $role = $_POST["role_number"];
+                            if (is_numeric($role)) {
+                                if (array_key_exists("action", $_POST)) {
+                                    $action = $_POST["action"];
+                                }
+                                // process 
+                                if ($action == "save") {
+                                    $db->execute("SELECT * FROM user WHERE username='$username' AND ID<>'$ID'");
+                                    $data = $db->countRow();
+                                    if ($data == 0) {
+                                        $sql_cmd = "UPDATE user SET username='$username', email='$email', PhoneNumber='$PhoneNumber', Address='$Address', role=$role WHERE ID=$ID";
+                                        $db->execute($sql_cmd);
+                                        $resp = array(
+                                            "mesg" => "Chỉnh sửa thành công"
+                                        );
+                                    } else {
+                                        $resp = array(
+                                            "mesg" => "Chỉnh sửa thất bại! Tên người dùng đã tồn tại"
+                                        );
+                                    }
+                                } else if ($action == "delete") {
+                                    $db->execute("DELETE FROM user WHERE ID=$ID");
+                                    $resp = array("mesg" => "Xóa thành công");
+                                } else if ($action == "add") {
+                                    $db->execute("SELECT * FROM user WHERE username='$username'");
+                                    $data = $db->countRow();
+                                    if ($data == 0) {
+                                        $db->execute("INSERT INTO user (username, email, PhoneNumber, Address, role) VALUES ('$username', '$email', '$PhoneNumber', '$Address', '$role')");
+                                        $resp = array(
+                                            "mesg" => "Thêm thành công"
+                                        );
+                                    } else {
+                                        $resp = array(
+                                            "mesg" => "Thêm thất bại! Tên người dùng đã tồn tại"
+                                        );
+                                    }
+                                }
+                            } else {
+                                $resp = array(
+                                    "mesg" => "Role ID must be number"
+                                );
+                            }
+                        }
+                    }
+                } else {
+                    $resp = array(
+                        "mesg" => $PhoneNumberErr
+                    );
+                }
+            }
+        } else {
+            $resp = array(
+                "mesg" => $emailErr
+            );
+        }
     }
 
     header('Content-Type: application/json');
     echo json_encode($resp);
 }
-?>

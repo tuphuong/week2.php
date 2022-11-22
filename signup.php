@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             </div>
             <p class="msg">Welcome</p>
             <div class="form">
-                <form id="signup-form" action="./signup" method="POST">
+                <form id="signup-form" action="./signup" method="POST" autocomplete="off">
                     <input type="text" placeholder="Username*" class="text" id="username" name="username" required><br>
                     <input type="password" placeholder="Password*" class="password" id="password" name="password"
                         required><br>

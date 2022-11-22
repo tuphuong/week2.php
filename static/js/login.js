@@ -6,8 +6,8 @@ $("#login-form").submit(function () {
 function Login() {
     let username = $("#username").val();
     let password = $("#password").val();
-    let hashPwd = md5(password);
-    console.log(username, password, hashPwd);
+    // let hashPwd = md5(password);
+    console.log(username, password);
 
     // send
     $.ajax({
@@ -15,7 +15,7 @@ function Login() {
         url: "/login.php",
         data: {
             "username": username,
-            "password": hashPwd
+            "password": password
         },
         success: function (resp) {
             console.log(resp);

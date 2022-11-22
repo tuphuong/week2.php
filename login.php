@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 <p class="msg">Welcome back</p>
                 <div class="form">
                     <form id="login-form" action="./login" method="POST">
-                        <input type="text" placeholder="Username" class="text" id="username" name="username" required><br>
+                        <input type="text" placeholder="Username" class="text" id="username" name="username" autocomplete="off" required><br>
                         <input type="password" placeholder="••••••••••••••" class="password" id="password" name="password"
-                            required><br>
+                            autocomplete="off" required><br>
                         <button class="btn-login" type="submit" id="do-login" style="cursor: pointer;"
                             onclick="Login()">Login</button>
                         
@@ -45,22 +45,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // POST METHOD
     require_once('helper/DbConfig.php');
     require_once('helper/validation.php');
-    $db = new Database();
-    $db->connect();
-    $username = $_POST["username"];
-    $password = $_POST["password"];
-    $db->execute("SELECT * FROM user WHERE username='$username' AND password='$password'");
-    $data = $db->getData();
-    if ($data) {
-        // Login success, then update token
-        $md5_token = md5("user=$username&pass=$password&time=" . date("Y-m-d H:i:s"));
-        $sql_cmd = "INSERT INTO session (token, time, username) VALUES ('$md5_token', '" . date("Y-m-d H:i:s") . "', '$username')";
-        $db->execute($sql_cmd);
-        $resp = array(
-            "token" => $md5_token,
-            "mesg" => "Login success"
-        );
-    } else {
+    require_once('helper/security.php');
+    try {
+        $db = new Database();
+        $db->connect();
+
+        $username = htmlentities(SQLfilter($_POST["username"]));
+        $password = htmlentities(SQLfilter($_POST["password"]));
+
+        $err1 = SQLi_Whitelist($username);
+        $err2 = SQLi_Whitelist($password);
+        if ($err1 == "" && $err2 == "") {
+            $password = md5($password);
+            $sql_cmd = "SELECT * FROM user WHERE username='$username' AND password='$password'";
+            $db->execute($sql_cmd);
+
+            $data = $db->getDataPreventSqli();
+            if ($data) {
+                // Login success, then update token
+                $md5_token = md5("user=$username&pass=$password&time=" . date("Y-m-d H:i:s"));
+                $sql_cmd = "INSERT INTO session (token, time, username) VALUES ('$md5_token', '" . date("Y-m-d H:i:s") . "', '$username')";
+                $db->execute($sql_cmd);
+                $resp = array(
+                    "token" => $md5_token,
+                    "mesg" => "Login success"
+                );
+            } else {
+                $resp = array(
+                    "token" => "",
+                    "mesg" => "Login fail"
+                );
+            }
+        } else {
+            $resp = array(
+                "token" => "",
+                "mesg" => "Login fail"
+            );
+        }
+
+    } catch (Exception $err) {
         $resp = array(
             "token" => "",
             "mesg" => "Login fail"

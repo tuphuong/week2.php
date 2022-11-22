@@ -59,5 +59,19 @@ class Database
         }
         return $data;
     }
+
+    public function getDataPreventSqli(){
+        $data = [];
+        
+        if (!$this->result) {
+            $data = array();
+        } else {
+            while ($newRow = $this->result->fetch_assoc()) {
+                $data = array_merge($data, $newRow);
+            }
+        }
+
+        return $data;
+    }
 }
 ?>

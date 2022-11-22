@@ -91,7 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     </html>';
 
 } else {
-    $content = $_POST["content"];
+    require_once("helper/security.php");
+    $content = xss_clean($_POST["content"]);
+
     $action = $_POST["action"];
 
     if ($action == "add") {

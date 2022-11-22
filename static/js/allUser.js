@@ -9,6 +9,22 @@ function saveUser(ID) {
         'role_number': $('#user-' + ID + '-Role').val(),
         'action': 'save'
     }
+    if (!payload["username"]) {
+        alert("Điền tên tài khoản cho người dùng");
+        return;
+    }
+    if (!payload["PhoneNumber"]) {
+        alert("Điền số điện thoại cho người dùng");
+        return;
+    }
+    if (!payload["email"]) {
+        alert("Điền email cho người dùng");
+        return;
+    }
+    if (!payload["role_number"]) {
+        alert("Điền ID quyền cho người dùng");
+        return;
+    }
     console.log(payload);
     postRole(payload);
 }
@@ -32,12 +48,20 @@ function addUser() {
         'role_number': $('#user-add-Role').val(),
         'action': 'add'
     }
-    if (!payload["role_number"]) {
-        alert("Điền ID quyền cho người dùng");
-        return;
-    }
     if (!payload["username"]) {
         alert("Điền tên tài khoản cho người dùng");
+        return;
+    }
+    if (!payload["PhoneNumber"]) {
+        alert("Điền số điện thoại cho người dùng");
+        return;
+    }
+    if (!payload["email"]) {
+        alert("Điền email cho người dùng");
+        return;
+    }
+    if (!payload["role_number"]) {
+        alert("Điền ID quyền cho người dùng");
         return;
     }
     console.log(payload);
